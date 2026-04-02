@@ -114,7 +114,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/mai
 4. 安装你选择的 **Shell** + 插件
 5. 安装所有 **CLI 工具**（macOS 用 Homebrew，Linux 用 apt + GitHub releases）
 6. 安装 **Starship** 提示符 + Catppuccin Mocha 配置
-7. 安装 **fnm** + **Node.js** LTS（可选）
+7. 安装 **fnm** + **Node.js** LTS（可选，fnm 已安装则跳过）
 8. 安装 **Zellij** 终端复用器（可选）
 9. 部署所有配置文件（已有配置会加时间戳备份）
 

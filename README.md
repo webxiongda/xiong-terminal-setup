@@ -114,7 +114,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/mai
 4. Installs your **shell** of choice + plugins
 5. Installs all **CLI tools** (Homebrew on macOS, apt + GitHub releases on Linux)
 6. Installs **Starship** prompt with Catppuccin Mocha config
-7. Installs **fnm** + **Node.js** LTS (optional)
+7. Installs **fnm** + **Node.js** LTS (optional, skips if fnm already installed)
 8. Installs **Zellij** terminal multiplexer (optional)
 9. Deploys all config files (existing configs are backed up with timestamps)
 
