@@ -62,9 +62,10 @@ cd terminal-setup && ./setup.sh
 ### Options
 
 ```bash
-./setup.sh --fish       # Fish shell
-./setup.sh --zsh        # Zsh + fish-like plugins
-./setup.sh --dry-run    # Preview what would be done (no changes)
+./setup.sh --fish        # Fish shell
+./setup.sh --zsh         # Zsh + fish-like plugins
+./setup.sh --skip-node   # Skip fnm + Node.js installation
+./setup.sh --dry-run     # Preview what would be done (no changes)
 ```
 
 One-liner (auto-clones):
@@ -80,9 +81,13 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/mai
 | **POSIX** | ❌ Own syntax | ✅ Compatible |
 | **Autosuggestions** | ✅ Built-in | ✅ via plugin |
 | **Syntax Highlighting** | ✅ Built-in | ✅ via plugin |
+| **Abbreviations** | ✅ Auto-configured | ❌ Use aliases |
 | **Node Manager** | fnm (shared) | fnm (shared) |
 | **Config** | `~/.config/fish/config.fish` | `~/.zshrc` |
+| **History Search** | Built-in | ↑/↓ prefix search |
 | **Best for** | Clean defaults, no fuss | Scripting, POSIX compat |
+
+> **Note:** Fish abbreviations are automatically configured by the setup script. Zsh uses traditional aliases instead.
 
 ## Stack
 
@@ -110,30 +115,39 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/mai
 
 1. Installs **package manager** (Homebrew on macOS, apt on Linux)
 2. Installs **Ghostty** terminal (macOS; Linux users install separately)
-3. Downloads **MesloLGS NF** nerd fonts
+3. Downloads **MesloLGS NF** nerd fonts (bundled in repo, no download needed)
 4. Installs your **shell** of choice + plugins
-5. Installs all **CLI tools** (Homebrew on macOS, apt + GitHub releases on Linux)
+5. Installs all **CLI tools** (Homebrew on macOS, apt + bundled binaries on Linux)
 6. Installs **Starship** prompt with Catppuccin Mocha config
 7. Installs **fnm** + **Node.js** LTS (optional, skips if fnm already installed)
 8. Installs **Zellij** terminal multiplexer (optional)
 9. Deploys all config files (existing configs are backed up with timestamps)
+   - Configures **git-delta** as git pager with syntax highlighting
+   - Sets up **fish abbreviations** or **zsh aliases** automatically
+   - Initializes **zoxide** and **fzf** in shell config
+   - Includes **SSH key switcher** function
 
 ## Platform Notes
 
 ### macOS
 - Full support, everything installs via Homebrew
 - Ghostty installs as a native macOS app
+- Fish abbreviations are automatically configured
+- All fonts and configs deploy seamlessly
 
 ### Debian / Ubuntu
-- CLI tools install via apt where available, GitHub releases for others (delta, lazygit, eza)
+- CLI tools install via apt where available, bundled binaries for others (delta, lazygit, eza, tldr)
 - `bat` → `batcat`, `fd` → `fdfind` — symlinks are created automatically
-- Fonts install to `~/.local/share/fonts/`
+- Fonts install from bundled files in `fonts/` directory to `~/.local/share/fonts/`
 - Ghostty is not in apt — install manually via [snap, build from source](https://ghostty.org/docs/install), or use another terminal
-- Zsh plugins install via apt or git clone
+- Zsh plugins install via apt or git clone fallback
+- Shell configs are automatically patched for Linux paths (no Homebrew references)
+- fnm installs to `~/.local/share/fnm` on Linux
 
 ### Windows (WSL)
 - Everything runs inside WSL (Ubuntu/Debian layer)
 - Terminal emulator runs on the Windows side — use [Windows Terminal](https://aka.ms/terminal) or [Ghostty for Windows](https://ghostty.org)
+- Ghostty config deploys to `~/.config/ghostty/` in WSL for reference (actual config on Windows side)
 - Script detects WSL automatically and adapts
 - If run in native Windows (MINGW/Git Bash), the script will prompt you to install WSL
 
@@ -149,6 +163,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/mai
 | `grep` | `rg` |
 | `top` | `btop` |
 | `lg` | `lazygit` |
+| `cd` (Fish only) | `z` (zoxide) |
+
+> **Note:** These are set automatically during setup. Fish uses abbreviations, Zsh uses traditional aliases.
 
 ## fzf Keybindings
 
@@ -168,6 +185,19 @@ fnm use 22                # Switch in current shell
 echo "22" > .node-version # Auto-switch when entering this directory
 ```
 
+> **Note:** fnm is installed with `--use-on-cd` by default, so it automatically reads `.node-version` or `.nvmrc` files when you `cd` into a project directory.
+
+## pnpm Support
+
+Both shell configs include pnpm setup. If you use pnpm, it's ready to go:
+
+```bash
+pnpm add -g <package>     # Install global packages
+pnpm create <app>         # Create new projects
+```
+
+> **Linux note:** pnpm path is set to `~/.local/share/pnpm` on Linux instead of `~/Library/pnpm` on macOS.
+
 ## SSH Key Switcher
 
 Both shell configs include a `set-ssh-key` function for quick SSH key switching:
@@ -186,6 +216,8 @@ set-ssh-key                  # Shows available keys on error
 ### Why Ghostty?
 
 GPU-accelerated, native macOS app, fast startup, clean config format. It's what iTerm2 should have been — modern, minimal, and doesn't try to do everything. Still early but moving fast.
+
+> **Linux users:** Ghostty is available via [snap or source build](https://ghostty.org/docs/install). The setup script will skip Ghostty installation on Linux and let you install it manually.
 
 ### Why Starship over Powerlevel10k?
 
@@ -250,6 +282,17 @@ If you have existing `.nvmrc` files in your projects, fnm reads them — fully c
 
 Alternatives: JetBrains Mono Nerd Font, Fira Code Nerd Font. All good choices. MesloLGS just has the widest compatibility.
 
+### Why pnpm?
+
+pnpm is a fast, disk-space-efficient Node package manager. It's included in both shell configs because:
+
+- **Shared node_modules:** Uses symlinks, saving disk space
+- **Fast:** Parallel installation, optimized resolution
+- **Strict:** Prevents phantom dependencies
+- **Workspace support:** Great for monorepos
+
+The setup script configures pnpm path automatically for your platform.
+
 ### Why git-delta for diffs?
 
 Git's default diff output is functional but ugly. Delta adds:
@@ -259,7 +302,7 @@ Git's default diff output is functional but ugly. Delta adds:
 - Proper word-level diff highlighting
 - Navigate between files with `n`/`N`
 
-Configured globally — works with `git diff`, `git log -p`, `git show`, etc. Zero behavior change, just better output.
+Configured globally via the setup script — works with `git diff`, `git log -p`, `git show`, etc. Zero behavior change, just better output.
 
 ### Why zoxide over plain cd?
 
@@ -271,7 +314,7 @@ z doc       # jumps to ~/Documents
 zi          # interactive fuzzy selection with fzf
 ```
 
-It's `cd` with a brain. Falls back to regular `cd` behavior for explicit paths.
+It's `cd` with a brain. Falls back to regular `cd` behavior for explicit paths. Fish users get `cd` mapped to `z` automatically via abbreviations.
 
 ### Why fzf?
 
@@ -283,6 +326,17 @@ The single most impactful CLI tool you can install:
 - Integrates with `fd` automatically (faster than `find`, respects `.gitignore`)
 
 Once you use fzf for a week, you can't go back.
+
+### Why Zellij?
+
+Zellij is a modern terminal multiplexer (like tmux but with better UX):
+
+- **Intuitive:** Tab-based interface, no memorizing shortcuts
+- **Plugins:** Wasm-based plugin system
+- **Layouts:** Save and restore workspace layouts
+- **Clean defaults:** Status bar, pane navigation, sessions
+
+Optional — the setup script prompts you before installing.
 
 ## License
 
