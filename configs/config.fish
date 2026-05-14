@@ -48,6 +48,28 @@ function set-ssh-key
     echo "Active SSH key: $argv[1]"
 end
 
+# Proxy toggle (proxy-on / proxy-off / proxy-status)
+set -gx PROXY_URL "http://127.0.0.1:7890"
+function proxy-on
+    set -gx HTTPS_PROXY $PROXY_URL
+    set -gx HTTP_PROXY $PROXY_URL
+    set -gx ALL_PROXY $PROXY_URL
+    echo "✓ Proxy ON: $PROXY_URL"
+end
+function proxy-off
+    set -e HTTPS_PROXY
+    set -e HTTP_PROXY
+    set -e ALL_PROXY
+    echo "✓ Proxy OFF"
+end
+function proxy-status
+    if set -q HTTPS_PROXY
+        echo "Proxy: ON ($HTTPS_PROXY)"
+    else
+        echo "Proxy: OFF"
+    end
+end
+
 # pnpm
 set -gx PNPM_HOME "$HOME/Library/pnpm"
 if not string match -q -- $PNPM_HOME $PATH

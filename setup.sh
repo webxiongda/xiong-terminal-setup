@@ -937,6 +937,7 @@ if [[ "$SHELL_CHOICE" == "fish" ]]; then
             abbr -a --global cd "z"
             abbr -a --global df "duf"
             abbr -a --global du "dust"
+            abbr -a --global y "yazi"
         '
         success "Fish abbreviations set"
     else

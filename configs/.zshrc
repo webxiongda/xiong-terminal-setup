@@ -84,6 +84,27 @@ function set-ssh-key() {
     echo "Active SSH key: $1"
 }
 
+# ─── Proxy toggle ────────────────────────────────────────────────────
+# Usage: proxy-on / proxy-off / proxy-status
+export PROXY_URL="http://127.0.0.1:7890"
+function proxy-on() {
+    export HTTPS_PROXY="$PROXY_URL"
+    export HTTP_PROXY="$PROXY_URL"
+    export ALL_PROXY="$PROXY_URL"
+    echo "✓ Proxy ON: $PROXY_URL"
+}
+function proxy-off() {
+    unset HTTPS_PROXY HTTP_PROXY ALL_PROXY
+    echo "✓ Proxy OFF"
+}
+function proxy-status() {
+    if [[ -n "$HTTPS_PROXY" ]]; then
+        echo "Proxy: ON ($HTTPS_PROXY)"
+    else
+        echo "Proxy: OFF"
+    fi
+}
+
 # ─── Aliases ─────────────────────────────────────────────────────────
 alias ls='eza --icons --group-directories-first'
 alias ll='eza -la --icons --group-directories-first'
@@ -95,6 +116,7 @@ alias top='btop'
 alias lg='lazygit'
 alias df='duf'
 alias du='dust'
+alias y='yazi'
 
 # ─── pnpm ────────────────────────────────────────────────────────────
 export PNPM_HOME="$HOME/Library/pnpm"
