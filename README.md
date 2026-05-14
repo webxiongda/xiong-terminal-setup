@@ -1,4 +1,4 @@
-# 🖥️ terminal-setup
+# 🐻‍❄️ Polar Bear
 
 One-script terminal environment setup for **macOS**, **Debian/Ubuntu**, and **Windows (WSL)**. Run on a fresh machine, get a fully configured terminal in minutes.
 
@@ -27,22 +27,20 @@ One-script terminal environment setup for **macOS**, **Debian/Ubuntu**, and **Wi
 | 🪟 **Windows (WSL)** | 🧪 Experimental — works but not extensively tested | apt (inside WSL) |
 | 🪟 **Windows (native)** | ⛔ Not supported | Use WSL instead |
 
-> **Note:** This script is primarily developed and tested on macOS. Linux (Debian/Ubuntu) and WSL support has been added and works, but has not gone through long-term usage testing. Issues and PRs welcome!
-
 ## Quick Start
 
 ### macOS
 
 ```bash
-git clone https://github.com/lewislulu/terminal-setup.git
-cd terminal-setup && ./setup.sh
+git clone https://github.com/webxiongda/xiong-terminal-setup.git
+cd xiong-terminal-setup && ./setup.sh
 ```
 
 ### Debian / Ubuntu
 
 ```bash
-git clone https://github.com/lewislulu/terminal-setup.git
-cd terminal-setup && ./setup.sh
+git clone https://github.com/webxiongda/xiong-terminal-setup.git
+cd xiong-terminal-setup && ./setup.sh
 ```
 
 ### Windows (WSL)
@@ -55,8 +53,8 @@ wsl --install
 
 Then inside WSL:
 ```bash
-git clone https://github.com/lewislulu/terminal-setup.git
-cd terminal-setup && ./setup.sh
+git clone https://github.com/webxiongda/xiong-terminal-setup.git
+cd xiong-terminal-setup && ./setup.sh
 ```
 
 ### Options
@@ -66,12 +64,13 @@ cd terminal-setup && ./setup.sh
 ./setup.sh --zsh         # Zsh + fish-like plugins
 ./setup.sh --skip-node   # Skip fnm + Node.js installation
 ./setup.sh --dry-run     # Preview what would be done (no changes)
+./setup.sh --reinstall   # Force reinstall all tools
 ```
 
 One-liner (auto-clones):
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/main/setup.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-setup/main/setup.sh)
 ```
 
 ## Choose Your Shell
@@ -86,8 +85,6 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/mai
 | **Config** | `~/.config/fish/config.fish` | `~/.zshrc` |
 | **History Search** | Built-in | ↑/↓ prefix search |
 | **Best for** | Clean defaults, no fuss | Scripting, POSIX compat |
-
-> **Note:** Fish abbreviations are automatically configured by the setup script. Zsh uses traditional aliases instead.
 
 ## Stack
 
@@ -165,8 +162,6 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lewislulu/terminal-setup/mai
 | `lg` | `lazygit` |
 | `cd` (Fish only) | `z` (zoxide) |
 
-> **Note:** These are set automatically during setup. Fish uses abbreviations, Zsh uses traditional aliases.
-
 ## fzf Keybindings
 
 | Key | What |
@@ -185,19 +180,6 @@ fnm use 22                # Switch in current shell
 echo "22" > .node-version # Auto-switch when entering this directory
 ```
 
-> **Note:** fnm is installed with `--use-on-cd` by default, so it automatically reads `.node-version` or `.nvmrc` files when you `cd` into a project directory.
-
-## pnpm Support
-
-Both shell configs include pnpm setup. If you use pnpm, it's ready to go:
-
-```bash
-pnpm add -g <package>     # Install global packages
-pnpm create <app>         # Create new projects
-```
-
-> **Linux note:** pnpm path is set to `~/.local/share/pnpm` on Linux instead of `~/Library/pnpm` on macOS.
-
 ## SSH Key Switcher
 
 Both shell configs include a `set-ssh-key` function for quick SSH key switching:
@@ -207,136 +189,7 @@ set-ssh-key my-key-name     # Clears agent, loads ~/.ssh/my-key-name
 set-ssh-key                  # Shows available keys on error
 ```
 
-> **Best practice:** Prefer `~/.ssh/config` with `Host` aliases and `IdentitiesOnly yes` for automatic key selection. The `set-ssh-key` function is a fallback for edge cases.
-
 ---
-
-## Design Decisions
-
-### Why Ghostty?
-
-GPU-accelerated, native macOS app, fast startup, clean config format. It's what iTerm2 should have been — modern, minimal, and doesn't try to do everything. Still early but moving fast.
-
-> **Linux users:** Ghostty is available via [snap or source build](https://ghostty.org/docs/install). The setup script will skip Ghostty installation on Linux and let you install it manually.
-
-### Why Starship over Powerlevel10k?
-
-- **Cross-shell:** Same prompt config works in both Fish and Zsh. p10k is Zsh-only.
-- **TOML config:** Declarative and readable vs p10k's wizard-generated mess.
-- **Rust binary:** Fast, no shell framework dependency.
-- **Catppuccin theme:** Consistent with the rest of the stack.
-
-If you only use Zsh and want maximum prompt speed, p10k's instant prompt is technically faster. But Starship is fast enough and works everywhere.
-
-### Why Fish AND Zsh? Why not just one?
-
-Different people have different needs:
-
-- **Fish:** Best out-of-box experience. Autosuggestions, syntax highlighting, completions — all built-in, zero config. But it's not POSIX-compatible, so `bash` scripts won't work directly, and some tools assume POSIX shell syntax.
-- **Zsh:** POSIX-compatible, so all bash scripts and one-liners work. With plugins (autosuggestions + syntax-highlighting), you get 90% of Fish's UX. The trade-off: more moving parts.
-
-If you're primarily a user/developer who runs other people's scripts → **Zsh**.
-If you want the cleanest shell experience and don't mind the occasional `bash script.sh` → **Fish**.
-
-### Why Homebrew for Zsh plugins? Why not zinit/antidote/sheldon?
-
-We only install 3 Zsh plugins: `zsh-autosuggestions`, `zsh-syntax-highlighting`, `zsh-completions`.
-
-For 3 plugins, a plugin manager is overkill:
-
-- **zinit:** Original author abandoned it. Community fork (zdharma-continuum) exists but adds complexity for no gain at this scale. Turbo mode and ice modifiers are powerful but unnecessary here.
-- **antidote/sheldon:** Good tools, but still an extra layer. More things that can break.
-- **Oh My Zsh:** Framework, not a plugin manager. Loads 100+ files on startup. Slow.
-- **Homebrew:** Already installed, `brew install` + one `source` line in `.zshrc`. Updates via `brew upgrade`. Zero extra dependencies. Done.
-
-**Rule of thumb:** If you have <5 plugins, Homebrew direct install. If you have 10+, consider antidote or sheldon.
-
-> **On Linux:** Zsh plugins install via apt (`zsh-autosuggestions`, `zsh-syntax-highlighting` packages) or git clone as fallback.
-
-### Why fnm over nvm?
-
-| | fnm | nvm |
-|---|-----|-----|
-| **Language** | Rust | Bash |
-| **Shell startup** | ~1ms | ~200-400ms (or lazy-load hack) |
-| **Fish support** | ✅ Native | ❌ Needs nvm.fish (separate project) |
-| **Zsh support** | ✅ Native | ✅ Native |
-| **Auto-switch** | ✅ `--use-on-cd` (reads `.node-version`, `.nvmrc`) | ⚠️ Needs hook script |
-| **Install** | `brew install fnm` / `curl` | curl script, modifies shell rc |
-| **Shared across shells** | ✅ Same Node installs for Fish & Zsh | ❌ nvm.fish and nvm-sh use different paths |
-
-The killer reasons:
-1. **Speed:** nvm adds 200-400ms to shell startup. fnm adds ~1ms. This matters when you open terminals frequently.
-2. **Unified:** One tool, one Node install location (`~/.local/share/fnm/`), works identically in Fish and Zsh. With nvm, you'd need nvm-sh for Zsh and nvm.fish for Fish — two different tools with incompatible storage paths.
-3. **Auto-switch:** `fnm env --use-on-cd` reads `.node-version` or `.nvmrc` files and switches automatically when you `cd` into a project. No extra hooks needed.
-4. **nvm.fish is a community project**, not official nvm. It works well but it's another dependency with its own quirks (custom `nvm_data` path, `set --universal nvm_default_version`).
-
-If you have existing `.nvmrc` files in your projects, fnm reads them — fully compatible.
-
-### Why MesloLGS NF specifically?
-
-- Designed for terminal use (monospace, clear at small sizes)
-- Includes all Nerd Font glyphs (icons, powerline, devicons)
-- Same font used by Powerlevel10k — battle-tested in terminals
-- Available in Regular/Bold/Italic/Bold Italic
-
-Alternatives: JetBrains Mono Nerd Font, Fira Code Nerd Font. All good choices. MesloLGS just has the widest compatibility.
-
-### Why pnpm?
-
-pnpm is a fast, disk-space-efficient Node package manager. It's included in both shell configs because:
-
-- **Shared node_modules:** Uses symlinks, saving disk space
-- **Fast:** Parallel installation, optimized resolution
-- **Strict:** Prevents phantom dependencies
-- **Workspace support:** Great for monorepos
-
-The setup script configures pnpm path automatically for your platform.
-
-### Why git-delta for diffs?
-
-Git's default diff output is functional but ugly. Delta adds:
-- Syntax highlighting in diffs
-- Line numbers
-- Side-by-side view
-- Proper word-level diff highlighting
-- Navigate between files with `n`/`N`
-
-Configured globally via the setup script — works with `git diff`, `git log -p`, `git show`, etc. Zero behavior change, just better output.
-
-### Why zoxide over plain cd?
-
-zoxide learns your most-used directories. After a few days:
-
-```bash
-z proj      # jumps to ~/projects (or wherever you go most with "proj" in the path)
-z doc       # jumps to ~/Documents
-zi          # interactive fuzzy selection with fzf
-```
-
-It's `cd` with a brain. Falls back to regular `cd` behavior for explicit paths. Fish users get `cd` mapped to `z` automatically via abbreviations.
-
-### Why fzf?
-
-The single most impactful CLI tool you can install:
-
-- **Ctrl+R:** Fuzzy search through command history (replaces the terrible default reverse-i-search)
-- **Ctrl+T:** Find any file by fuzzy name match
-- **Alt+C:** cd into any directory by fuzzy match
-- Integrates with `fd` automatically (faster than `find`, respects `.gitignore`)
-
-Once you use fzf for a week, you can't go back.
-
-### Why Zellij?
-
-Zellij is a modern terminal multiplexer (like tmux but with better UX):
-
-- **Intuitive:** Tab-based interface, no memorizing shortcuts
-- **Plugins:** Wasm-based plugin system
-- **Layouts:** Save and restore workspace layouts
-- **Clean defaults:** Status bar, pane navigation, sessions
-
-Optional — the setup script prompts you before installing.
 
 ## License
 

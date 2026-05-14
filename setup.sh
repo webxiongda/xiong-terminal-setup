@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# terminal-setup — One-script terminal environment setup
+# Polar Bear — One-script terminal environment setup
 #
 # Platforms: macOS, Debian/Ubuntu, Windows (via WSL)
 #
@@ -14,6 +14,8 @@
 #   ./setup.sh --fish       # use Fish
 #   ./setup.sh --zsh        # use Zsh (with fish-like plugins)
 #   ./setup.sh --dry-run    # preview what would be done (no changes)
+#   ./setup.sh --reinstall  # force reinstall all tools (skip "already installed" checks)
+#   ./setup.sh --skip-node  # skip fnm + Node.js installation
 #
 
 set -euo pipefail
@@ -46,18 +48,26 @@ run_cmd() {
 # ─── Parse Arguments ────────────────────────────────────────────────
 SHELL_CHOICE=""
 SKIP_NODE=false
+REINSTALL=false
 for arg in "$@"; do
     case "$arg" in
-        --fish)      SHELL_CHOICE="fish" ;;
-        --zsh)       SHELL_CHOICE="zsh" ;;
-        --dry-run)   DRY_RUN=true ;;
-        --skip-node) SKIP_NODE=true ;;
+        --fish)       SHELL_CHOICE="fish" ;;
+        --zsh)        SHELL_CHOICE="zsh" ;;
+        --dry-run)    DRY_RUN=true ;;
+        --skip-node)  SKIP_NODE=true ;;
+        --reinstall)  REINSTALL=true ;;
     esac
 done
 
 if $DRY_RUN; then
     echo ""
     echo -e "${YELLOW}${BOLD}  ⚠  DRY-RUN MODE — no changes will be made${NC}"
+    echo ""
+fi
+
+if $REINSTALL; then
+    echo ""
+    echo -e "${YELLOW}${BOLD}  ♻  REINSTALL MODE — forcing reinstall of all tools${NC}"
     echo ""
 fi
 
@@ -139,8 +149,8 @@ CONFIGS_DIR="$SCRIPT_DIR/configs"
 if [[ ! -d "$CONFIGS_DIR" ]]; then
     info "Config files not found locally, cloning repo..."
     TMPDIR_CLONE="$(mktemp -d)"
-    git clone --depth 1 https://github.com/lewislulu/terminal-setup.git "$TMPDIR_CLONE/terminal-setup"
-    SCRIPT_DIR="$TMPDIR_CLONE/terminal-setup"
+    git clone --depth 1 https://github.com/webxiongda/xiong-terminal-setup.git "$TMPDIR_CLONE/xiong-terminal-setup"
+    SCRIPT_DIR="$TMPDIR_CLONE/xiong-terminal-setup"
     CONFIGS_DIR="$SCRIPT_DIR/configs"
 fi
 
@@ -153,7 +163,7 @@ pkg_install() {
     local pkg="$1"
     case "$OS" in
         macos)
-            if brew list "$pkg" &>/dev/null; then
+            if ! $REINSTALL && brew list "$pkg" &>/dev/null; then
                 success "$pkg already installed"
                 return 0
             fi
@@ -161,7 +171,7 @@ pkg_install() {
             run_cmd brew install "$pkg"
             ;;
         debian|wsl)
-            if dpkg -s "$pkg" &>/dev/null 2>&1; then
+            if ! $REINSTALL && dpkg -s "$pkg" &>/dev/null 2>&1; then
                 success "$pkg already installed"
                 return 0
             fi
@@ -179,7 +189,7 @@ cask_install() {
         warn "Cask install is macOS-only, skipping $cask on $OS"
         return 0
     fi
-    if brew list --cask "$cask" &>/dev/null; then
+    if ! $REINSTALL && brew list --cask "$cask" &>/dev/null; then
         success "$cask already installed"
         return 0
     fi
@@ -231,7 +241,7 @@ echo -e "${BOLD}═════════════════════�
 
 case "$OS" in
     macos)
-        if [[ ! -d "/Applications/Ghostty.app" ]]; then
+        if $REINSTALL || [[ ! -d "/Applications/Ghostty.app" ]]; then
             info "Installing Ghostty..."
             run_cmd brew install --cask ghostty
             success "Ghostty installed"
@@ -293,7 +303,7 @@ for font in "${MESLO_FONTS[@]}"; do
     [[ ! -f "$FONT_DIR/$font" ]] && FONT_INSTALLED=false && break
 done
 
-if $FONT_INSTALLED; then
+if $FONT_INSTALLED && ! $REINSTALL; then
     success "MesloLGS NF fonts already installed"
 else
     info "Installing MesloLGS NF fonts from repo..."
@@ -326,7 +336,7 @@ echo -e "${BOLD}═════════════════════�
 
 install_shell_macos() {
     if [[ "$SHELL_CHOICE" == "fish" ]]; then
-        if ! has_cmd fish; then
+        if $REINSTALL || ! has_cmd fish; then
             info "Installing Fish..."
             run_cmd brew install fish
             success "Fish installed"
@@ -351,7 +361,7 @@ install_shell_macos() {
         # Zsh is pre-installed on macOS, just install the plugins
         local plugins=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions)
         for plugin in "${plugins[@]}"; do
-            if brew list "$plugin" &>/dev/null; then
+            if ! $REINSTALL && brew list "$plugin" &>/dev/null; then
                 success "$plugin already installed"
             else
                 info "Installing $plugin..."
@@ -373,7 +383,7 @@ install_shell_macos() {
 
 install_shell_linux() {
     if [[ "$SHELL_CHOICE" == "fish" ]]; then
-        if ! has_cmd fish; then
+        if $REINSTALL || ! has_cmd fish; then
             # Fish PPA for latest version on Ubuntu/Debian
             if [[ -f /etc/lsb-release ]] && grep -qi ubuntu /etc/lsb-release 2>/dev/null; then
                 info "Adding Fish PPA for latest version..."
@@ -467,7 +477,7 @@ echo -e "${BOLD}═════════════════════�
 install_cli_tools_macos() {
     local TOOLS=(bat eza fd ripgrep btop zoxide jq tldr git-delta lazygit fzf)
     for tool in "${TOOLS[@]}"; do
-        if brew list "$tool" &>/dev/null; then
+        if ! $REINSTALL && brew list "$tool" &>/dev/null; then
             success "$tool already installed"
         else
             info "Installing $tool..."
@@ -482,7 +492,7 @@ install_cli_tools_linux() {
     local APT_TOOLS=(bat fd-find ripgrep jq fzf)
 
     for tool in "${APT_TOOLS[@]}"; do
-        if dpkg -s "$tool" &>/dev/null 2>&1; then
+        if ! $REINSTALL && dpkg -s "$tool" &>/dev/null 2>&1; then
             success "$tool already installed"
         else
             info "Installing $tool..."
@@ -492,7 +502,7 @@ install_cli_tools_linux() {
     done
 
     # btop — not in apt on older Debian/Ubuntu, use snap as fallback
-    if has_cmd btop; then
+    if ! $REINSTALL && has_cmd btop; then
         success "btop already installed"
     else
         info "Installing btop..."
@@ -508,7 +518,7 @@ install_cli_tools_linux() {
     fi
 
     # zoxide — not in apt on older Debian/Ubuntu, use bundled installer as fallback
-    if has_cmd zoxide; then
+    if ! $REINSTALL && has_cmd zoxide; then
         success "zoxide already installed"
     else
         info "Installing zoxide..."
@@ -552,7 +562,7 @@ install_cli_tools_linux() {
     }
 
     # eza — try apt first, then bundled binary
-    if has_cmd eza; then
+    if ! $REINSTALL && has_cmd eza; then
         success "eza already installed"
     else
         info "Installing eza..."
@@ -564,7 +574,7 @@ install_cli_tools_linux() {
     fi
 
     # tldr (tealdeer) — try apt first, then bundled binary
-    if has_cmd tldr; then
+    if ! $REINSTALL && has_cmd tldr; then
         success "tldr already installed"
     else
         info "Installing tldr..."
@@ -576,7 +586,7 @@ install_cli_tools_linux() {
     fi
 
     # git-delta — try apt first, then bundled binary
-    if has_cmd delta; then
+    if ! $REINSTALL && has_cmd delta; then
         success "git-delta already installed"
     else
         info "Installing git-delta..."
@@ -588,7 +598,7 @@ install_cli_tools_linux() {
     fi
 
     # lazygit — try apt first, then bundled binary
-    if has_cmd lazygit; then
+    if ! $REINSTALL && has_cmd lazygit; then
         success "lazygit already installed"
     else
         info "Installing lazygit..."
@@ -616,7 +626,7 @@ echo -e "${BOLD}═════════════════════�
 echo -e "${BOLD}  🚀 Step 6/9: Starship Prompt${NC}"
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
 
-if has_cmd starship; then
+if ! $REINSTALL && has_cmd starship; then
     success "Starship already installed"
 else
     case "$OS" in
@@ -645,7 +655,7 @@ echo -e "${BOLD}═════════════════════�
 
 if $SKIP_NODE; then
     info "Skipping fnm + Node.js (--skip-node flag set)"
-elif has_cmd fnm; then
+elif ! $REINSTALL && has_cmd fnm; then
     success "fnm already installed"
     # Load fnm in current shell so we can install Node
     eval "$(fnm env --use-on-cd --shell bash)"
@@ -696,7 +706,7 @@ echo -e "${BOLD}═════════════════════�
 echo -e "${BOLD}  🪟 Step 8/9: Zellij (optional)${NC}"
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
 
-if has_cmd zellij; then
+if ! $REINSTALL && has_cmd zellij; then
     success "Zellij already installed"
 else
     echo ""
