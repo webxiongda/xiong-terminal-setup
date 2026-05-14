@@ -125,14 +125,15 @@ if [[ -z "$SHELL_CHOICE" ]]; then
     echo ""
     echo -e "${BOLD}Which shell do you want to use?${NC}"
     echo ""
-    echo -e "  ${GREEN}1)${NC} ${BOLD}Fish${NC}  — Modern shell, amazing defaults, not POSIX"
-    echo -e "  ${GREEN}2)${NC} ${BOLD}Zsh${NC}   — POSIX-compatible, fish-like with plugins"
+    echo -e "  ${GREEN}1)${NC} ${BOLD}Zsh${NC}   ${GREEN}★ Recommended${NC} — POSIX-compatible, fish-like with plugins (macOS default)"
+    echo -e "  ${GREEN}2)${NC} ${BOLD}Fish${NC}  — Modern shell, amazing defaults, not POSIX-compatible"
     echo ""
     while true; do
-        read -rp "Choose [1/2]: " choice
+        read -rp "Choose [1/2] (default: 1): " choice
+        choice="${choice:-1}"
         case "$choice" in
-            1|fish) SHELL_CHOICE="fish"; break ;;
-            2|zsh)  SHELL_CHOICE="zsh"; break ;;
+            1|zsh)  SHELL_CHOICE="zsh"; break ;;
+            2|fish) SHELL_CHOICE="fish"; break ;;
             *) echo "Please enter 1 or 2." ;;
         esac
     done
