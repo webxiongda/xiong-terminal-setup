@@ -475,7 +475,7 @@ echo -e "${BOLD}  🛠  Step 5/9: CLI Tools${NC}"
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
 
 install_cli_tools_macos() {
-    local TOOLS=(bat eza fd ripgrep btop zoxide jq tldr git-delta lazygit fzf)
+    local TOOLS=(bat eza fd ripgrep btop zoxide jq tldr git-delta lazygit fzf gh duf dust glow direnv atuin)
     for tool in "${TOOLS[@]}"; do
         if ! $REINSTALL && brew list "$tool" &>/dev/null; then
             success "$tool already installed"
@@ -609,6 +609,84 @@ install_cli_tools_linux() {
         fi
     fi
 
+    # gh (GitHub CLI) — try apt first, then add official repo
+    if ! $REINSTALL && has_cmd gh; then
+        success "gh already installed"
+    else
+        info "Installing gh (GitHub CLI)..."
+        if run_cmd sudo apt-get install -y gh 2>/dev/null; then
+            success "gh installed via apt"
+        else
+            info "Adding GitHub CLI apt repo..."
+            run_cmd curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
+            run_cmd sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            run_cmd sudo apt-get update
+            run_cmd sudo apt-get install -y gh
+            success "gh installed via GitHub apt repo"
+        fi
+    fi
+
+    # duf — better df
+    if ! $REINSTALL && has_cmd duf; then
+        success "duf already installed"
+    else
+        info "Installing duf..."
+        if run_cmd sudo apt-get install -y duf 2>/dev/null; then
+            success "duf installed via apt"
+        else
+            install_bundled_bin duf || warn "Could not install duf — skipping"
+        fi
+    fi
+
+    # dust — better du
+    if ! $REINSTALL && has_cmd dust; then
+        success "dust already installed"
+    else
+        info "Installing dust..."
+        if run_cmd sudo apt-get install -y du-dust 2>/dev/null; then
+            success "dust installed via apt"
+        else
+            install_bundled_bin dust || warn "Could not install dust — skipping"
+        fi
+    fi
+
+    # glow — markdown renderer
+    if ! $REINSTALL && has_cmd glow; then
+        success "glow already installed"
+    else
+        info "Installing glow..."
+        if run_cmd sudo apt-get install -y glow 2>/dev/null; then
+            success "glow installed via apt"
+        else
+            install_bundled_bin glow || warn "Could not install glow — skipping"
+        fi
+    fi
+
+    # direnv — per-directory env vars
+    if ! $REINSTALL && has_cmd direnv; then
+        success "direnv already installed"
+    else
+        info "Installing direnv..."
+        run_cmd sudo apt-get install -y direnv
+        success "direnv installed"
+    fi
+
+    # atuin — shell history
+    if ! $REINSTALL && has_cmd atuin; then
+        success "atuin already installed"
+    else
+        info "Installing atuin..."
+        if [[ -f "$SCRIPT_DIR/bin/linux-x86_64/atuin" ]]; then
+            run_cmd sudo cp "$SCRIPT_DIR/bin/linux-x86_64/atuin" /usr/local/bin/atuin
+            run_cmd sudo chmod +x /usr/local/bin/atuin
+            success "atuin installed from bundled binary"
+        else
+            run_cmd bash <(curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh)
+            success "atuin installed via official installer"
+        fi
+    fi
+
     # Ensure ~/.local/bin is in PATH
     if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
         export PATH="$HOME/.local/bin:$PATH"
@@ -700,12 +778,13 @@ else
     fi
 fi  # end SKIP_NODE
 
-# ─── Step 8: Zellij (optional) ──────────────────────────────────────
+# ─── Step 8: Optional Tools (Zellij / Yazi) ─────────────────────────
 echo ""
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
-echo -e "${BOLD}  🪟 Step 8/9: Zellij (optional)${NC}"
+echo -e "${BOLD}  🪟 Step 8/9: Optional Tools${NC}"
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
 
+# --- Zellij ---
 if ! $REINSTALL && has_cmd zellij; then
     success "Zellij already installed"
 else
@@ -725,7 +804,6 @@ else
                     run_cmd sudo cp "$SCRIPT_DIR/bin/linux-x86_64/zellij" /usr/local/bin/zellij
                     run_cmd sudo chmod +x /usr/local/bin/zellij
                 else
-                    # Use official installer
                     run_cmd bash <(curl -L https://zellij.dev/launch)
                 fi
                 ;;
@@ -733,6 +811,35 @@ else
         success "Zellij installed"
     else
         info "Skipping Zellij"
+    fi
+fi
+
+# --- Yazi ---
+if ! $REINSTALL && has_cmd yazi; then
+    success "Yazi already installed"
+else
+    echo ""
+    echo -e "  Yazi is a blazing-fast terminal file manager with image/video preview."
+    printf "  Install Yazi? (y/N): "
+    read -r INSTALL_YAZI
+    if [[ "$INSTALL_YAZI" =~ ^[Yy]$ ]]; then
+        case "$OS" in
+            macos)
+                info "Installing Yazi..."
+                run_cmd brew install yazi
+                ;;
+            debian|wsl)
+                info "Installing Yazi..."
+                if run_cmd sudo apt-get install -y yazi 2>/dev/null; then
+                    success "yazi installed via apt"
+                else
+                    install_bundled_bin yazi || warn "Could not install yazi — see https://yazi-rs.github.io/docs/installation"
+                fi
+                ;;
+        esac
+        success "Yazi installed"
+    else
+        info "Skipping Yazi"
     fi
 fi
 
@@ -809,7 +916,7 @@ if [[ "$SHELL_CHOICE" == "fish" ]]; then
         run_cmd cp "$CONFIGS_DIR/config.fish" "$FISH_CONFIG_DIR/config.fish"
         # Patch: replace Homebrew paths with Linux equivalents
         sed -i 's|/opt/homebrew/bin/starship|starship|g' "$FISH_CONFIG_DIR/config.fish"
-        sed -i 's|fish_add_path /opt/homebrew/bin|# PATH: system paths are used on Linux|g' "$FISH_CONFIG_DIR/config.fish"
+        sed -i 's|fish_add_path /opt/homebrew/bin|# PATH: system paths are used on Linux\nfish_add_path $HOME/.local/bin $HOME/.atuin/bin|g' "$FISH_CONFIG_DIR/config.fish"
         # Fix pnpm path for Linux
         sed -i 's|\$HOME/Library/pnpm|\$HOME/.local/share/pnpm|g' "$FISH_CONFIG_DIR/config.fish"
     fi
@@ -828,6 +935,8 @@ if [[ "$SHELL_CHOICE" == "fish" ]]; then
             abbr -a --global top "btop"
             abbr -a --global lg "lazygit"
             abbr -a --global cd "z"
+            abbr -a --global df "duf"
+            abbr -a --global du "dust"
         '
         success "Fish abbreviations set"
     else
@@ -877,7 +986,7 @@ else
         # Deploy and patch for Linux
         run_cmd cp "$CONFIGS_DIR/.zshrc" "$HOME/.zshrc"
 
-        # Patch Homebrew paths → Linux paths
+        # Patch Homebrew PATH → Linux PATH
         sed -i 's|export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:\$PATH"|# PATH — system paths on Linux\nexport PATH="$HOME/.local/bin:$PATH"|' "$HOME/.zshrc"
 
         # Patch zsh plugin source paths
@@ -891,6 +1000,11 @@ else
         # Add fnm path for Linux (installed to ~/.local/share/fnm)
         if ! grep -qF '.local/share/fnm' "$HOME/.zshrc" 2>/dev/null; then
             sed -i '/# ─── fnm/i # fnm binary path (Linux)\nexport PATH="$HOME/.local/share/fnm:$PATH"\n' "$HOME/.zshrc"
+        fi
+
+        # Add atuin path for Linux (installed to ~/.atuin/bin)
+        if ! grep -qF '.atuin/bin' "$HOME/.zshrc" 2>/dev/null; then
+            sed -i '/# ─── atuin/i # atuin binary path (Linux)\nexport PATH="$HOME/.atuin/bin:$PATH"\n' "$HOME/.zshrc"
         fi
     fi
     success "Zsh config deployed"
@@ -948,9 +1062,16 @@ echo -e "    📦 bat eza fd rg        — modern coreutils"
 echo -e "    📊 btop                 — system monitor"
 echo -e "    🔀 lazygit + delta      — git tools"
 echo -e "    📁 zoxide               — smart cd"
-echo -e "    🔍 fzf                  — fuzzy finder"
+echo -e "    🔍 fzf + atuin          — fuzzy finder + history search"
+echo -e "    💾 duf + dust           — disk usage (df / du)"
+echo -e "    🌐 gh                   — GitHub CLI"
+echo -e "    📝 glow                 — markdown renderer"
+echo -e "    🔧 direnv               — per-directory env vars"
 if has_cmd zellij; then
     echo -e "    🪟 zellij               — terminal multiplexer"
+fi
+if has_cmd yazi; then
+    echo -e "    📂 yazi                 — terminal file manager"
 fi
 echo ""
 echo -e "  ${YELLOW}Next steps:${NC}"
