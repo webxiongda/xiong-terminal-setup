@@ -18,6 +18,15 @@
   <img src="assets/demo-2x.gif" width="600" alt="Demo">
 </p>
 
+## ✨ 特性亮点
+
+- 🪟 **毛玻璃透明** — Ghostty 0.85 透明度 + 高斯模糊
+- 🎨 **Catppuccin 主题** — 自动跟随系统明暗模式 (Latte / Mocha)
+- ⌨️ **完整快捷键** — 分屏、标签页、光标跳转一应俱全
+- 🚀 **Starship 提示符** — Git、语言环境、耗时、conda 一目了然
+- 🔤 **Maple Mono NF CN** — 支持中文的 Nerd Font，图标不乱码
+- 📦 **一键安装** — 零配置，5 分钟搞定
+
 ## 支持平台
 
 | 平台 | 状态 | 包管理器 |
@@ -88,10 +97,10 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 
 | 组件 | 说明 |
 |------|------|
-| **[Ghostty](https://ghostty.org)** | GPU 加速终端模拟器 |
+| **[Ghostty](https://ghostty.org)** | GPU 加速终端，毛玻璃 + 分屏 + Quick Terminal |
 | **Fish** 或 **Zsh** | Shell（你选） |
 | **[Starship](https://starship.rs)** | 跨 Shell 提示符（Catppuccin Mocha 主题） |
-| **MesloLGS NF** | Nerd Font，提供图标和 Powerline 字形 |
+| **Maple Mono NF CN** | Nerd Font，中文支持，图标 + Powerline 字形 |
 | **[bat](https://github.com/sharkdp/bat)** | 带语法高亮和行号的 `cat` |
 | **[eza](https://github.com/eza-community/eza)** | 带图标、git 状态、树形视图的 `ls` |
 | **[fd](https://github.com/sharkdp/fd)** | 更快更直观的 `find` |
@@ -106,52 +115,45 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 | **[fnm](https://github.com/Schniz/fnm)** | 快速 Node 版本管理器（Rust 编写） |
 | **[Zellij](https://zellij.dev)** | 现代终端复用器（可选） |
 
-## 脚本做了什么
+## Ghostty 快捷键速查
 
-1. 安装**包管理器**（macOS 用 Homebrew，Linux 用 apt）
-2. 安装 **Ghostty** 终端（macOS；Linux 需手动安装）
-3. 安装 **MesloLGS NF** Nerd 字体（从仓库内置，无需下载）
-4. 安装你选择的 **Shell** + 插件
-5. 安装所有 **CLI 工具**（macOS 用 Homebrew，Linux 用 apt + 内置二进制）
-6. 安装 **Starship** 提示符 + Catppuccin Mocha 配置
-7. 安装 **fnm** + **Node.js** LTS（可选，fnm 已安装则跳过）
-8. 安装 **Zellij** 终端复用器（可选）
-9. 部署所有配置文件（已有配置会加时间戳备份）
-   - 配置 **git-delta** 作为 git pager
-   - 自动设置 **fish abbreviations** 或 **zsh aliases**
-   - 初始化 **zoxide** 和 **fzf**
+> `super` = ⌘ Cmd | `alt` = ⌥ Option | `ctrl` = ⌃ Control | `shift` = ⇧ Shift
 
-## 平台说明
-
-### macOS
-- 完整支持，所有工具通过 Homebrew 安装
-- Ghostty 作为原生 macOS 应用安装
-
-### Debian / Ubuntu
-- CLI 工具优先用 apt 安装，apt 没有的用内置二进制（delta、lazygit、eza、tldr）
-- `bat` 在 Debian 上叫 `batcat`，`fd` 叫 `fdfind` — 脚本会自动创建软链接
-- 字体安装到 `~/.local/share/fonts/`
-- Ghostty 不在 apt 里 — 可通过 [snap、源码编译](https://ghostty.org/docs/install) 安装，或用其他终端
-- Zsh 插件通过 apt 或 git clone 安装
-
-### Windows (WSL)
-- 所有操作在 WSL 内部执行（Ubuntu/Debian 层）
-- 终端模拟器在 Windows 侧运行 — 推荐 [Windows Terminal](https://aka.ms/terminal) 或 [Ghostty for Windows](https://ghostty.org)
-- 脚本自动检测 WSL 环境并适配
+| 分类 | 快捷键 | 功能 |
+|------|--------|------|
+| 分屏 | `Cmd+D` | 向右新建分屏 |
+| | `Cmd+Shift+D` | 向下新建分屏 |
+| | `Cmd+Opt+↑↓←→` | 在分屏间跳转 |
+| | `Cmd+Shift+Enter` | 放大/还原当前分屏 |
+| 标签 | `Cmd+T` | 新建标签 |
+| | `Cmd+1~8` | 切换标签 |
+| | `Cmd+Shift+[/]` | 上/下一个标签 |
+| 窗口 | `Cmd+W` | 关闭分屏 |
+| | `Cmd+Opt+W` | 关闭标签 |
+| | `Cmd+N` | 新建窗口 |
+| 字体 | `Cmd+=` / `Cmd+-` | 放大/缩小 |
+| | `Cmd+0` | 重置大小 |
+| 导航 | `Cmd+↑/↓` | 跳转上/下一个命令提示符 |
+| | `Opt+←/→` | 光标跳单词 |
+| | `Cmd+←/→` | 光标跳行首/尾 |
+| 其他 | `Cmd+K` | 清屏 |
+| | `Cmd+Shift+,` | 重载配置 |
+| | `Cmd+Enter` | 全屏 |
 
 ## 别名 / 缩写
 
 | 快捷方式 | 展开为 |
 |----------|--------|
 | `ls` | `eza --icons --group-directories-first` |
-| `ll` | `eza -la --icons --group-directories-first` |
+| `ll` | `eza -lha --icons --group-directories-first` |
+| `la` | `eza -a --icons` |
 | `lt` | `eza --tree --icons --level=2` |
 | `cat` | `bat` |
 | `find` | `fd` |
 | `grep` | `rg` |
 | `top` | `btop` |
 | `lg` | `lazygit` |
-| `cd`（Fish 独有） | `z`（zoxide） |
+| `c` | `clear` |
 
 ## fzf 快捷键
 
@@ -179,6 +181,15 @@ echo "22" > .node-version # 进入目录自动切换
 set-ssh-key my-key-name     # 清空 agent，加载 ~/.ssh/my-key-name
 set-ssh-key                  # key 不存在时列出所有可用 key
 ```
+
+## 配置文件位置
+
+| 文件 | 路径 |
+|------|------|
+| Ghostty | `~/.config/ghostty/config` |
+| Starship | `~/.config/starship.toml` |
+| Zsh | `~/.zshrc` |
+| Fish | `~/.config/fish/config.fish` |
 
 ---
 
