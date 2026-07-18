@@ -7,8 +7,6 @@ One-script terminal environment setup for **macOS**, **Debian/Ubuntu**, and **Wi
 <p align="center">
   <img src="assets/ghostty.png" width="80" alt="Ghostty">
   &nbsp;&nbsp;
-  <img src="assets/fish.png" width="80" alt="Fish Shell">
-  &nbsp;&nbsp;
   <img src="assets/zsh.png" width="80" alt="Zsh">
   &nbsp;&nbsp;
   <img src="assets/starship.png" width="80" alt="Starship">
@@ -60,8 +58,6 @@ cd xiong-terminal-setup && ./setup.sh
 ### Options
 
 ```bash
-./setup.sh --fish        # Fish shell
-./setup.sh --zsh         # Zsh + fish-like plugins
 ./setup.sh --skip-node   # Skip fnm + Node.js installation
 ./setup.sh --dry-run     # Preview what would be done (no changes)
 ./setup.sh --reinstall   # Force reinstall all tools
@@ -73,25 +69,12 @@ One-liner (auto-clones):
 bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-setup/main/setup.sh)
 ```
 
-## Choose Your Shell
-
-| | 🐟 Fish | 🐚 Zsh |
-|---|---------|---------|
-| **POSIX** | ❌ Own syntax | ✅ Compatible |
-| **Autosuggestions** | ✅ Built-in | ✅ via plugin |
-| **Syntax Highlighting** | ✅ Built-in | ✅ via plugin |
-| **Abbreviations** | ✅ Auto-configured | ❌ Use aliases |
-| **Node Manager** | fnm (shared) | fnm (shared) |
-| **Config** | `~/.config/fish/config.fish` | `~/.zshrc` |
-| **History Search** | Built-in | ↑/↓ prefix search |
-| **Best for** | Clean defaults, no fuss | Scripting, POSIX compat |
-
 ## Stack
 
 | Component | What |
 |-----------|------|
 | **[Ghostty](https://ghostty.org)** | GPU-accelerated terminal emulator |
-| **Fish** or **Zsh** | Shell (your choice) |
+| **Zsh** | Shell with autosuggestions + syntax highlighting + completions |
 | **[Starship](https://starship.rs)** | Cross-shell prompt (Catppuccin Mocha theme) |
 | **MesloLGS NF** | Nerd Font for icons & powerline glyphs |
 | **[bat](https://github.com/sharkdp/bat)** | `cat` with syntax highlighting & line numbers |
@@ -113,23 +96,22 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 1. Installs **package manager** (Homebrew on macOS, apt on Linux)
 2. Installs **Ghostty** terminal (macOS; Linux users install separately)
 3. Downloads **MesloLGS NF** nerd fonts (bundled in repo, no download needed)
-4. Installs your **shell** of choice + plugins
+4. Installs **Zsh** + plugins (autosuggestions, syntax highlighting, completions)
 5. Installs all **CLI tools** (Homebrew on macOS, apt + bundled binaries on Linux)
 6. Installs **Starship** prompt with Catppuccin Mocha config
 7. Installs **fnm** + **Node.js** LTS (optional, skips if fnm already installed)
 8. Installs **Zellij** terminal multiplexer (optional)
 9. Deploys all config files (existing configs are backed up with timestamps)
    - Configures **git-delta** as git pager with syntax highlighting
-   - Sets up **fish abbreviations** or **zsh aliases** automatically
-   - Initializes **zoxide** and **fzf** in shell config
-   - Includes **SSH key switcher** function
+   - Sets up **zsh aliases** for modern tool replacements
+   - Initializes **zoxide**, **fzf**, and **atuin** in shell config
+   - Includes **SSH key switcher** and **proxy toggle** functions
 
 ## Platform Notes
 
 ### macOS
 - Full support, everything installs via Homebrew
 - Ghostty installs as a native macOS app
-- Fish abbreviations are automatically configured
 - All fonts and configs deploy seamlessly
 
 ### Debian / Ubuntu
@@ -160,7 +142,6 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 | `grep` | `rg` |
 | `top` | `btop` |
 | `lg` | `lazygit` |
-| `cd` (Fish only) | `z` (zoxide) |
 
 ## fzf Keybindings
 

@@ -4,15 +4,13 @@
 #
 # Platforms: macOS, Debian/Ubuntu, Windows (via WSL)
 #
-# Stack: Ghostty + (Fish or Zsh) + Starship + Nerd Font (MesloLGS)
-# Tools: bat, eza, fd, ripgrep, btop, zoxide, jq, tldr, delta, lazygit, fzf
-# Node:  fnm (Fast Node Manager) — works with both Fish and Zsh
+# Stack: Ghostty + Zsh + Starship + Nerd Font (Maple Mono NF CN)
+# Tools: bat, eza, fd, ripgrep, btop, zoxide, jq, tldr, delta, lazygit, fzf, atuin
+# Node:  fnm (Fast Node Manager)
 # Theme: Catppuccin Mocha (Starship)
 #
 # Usage:
-#   ./setup.sh              # interactive shell choice
-#   ./setup.sh --fish       # use Fish
-#   ./setup.sh --zsh        # use Zsh (with fish-like plugins)
+#   ./setup.sh              # run setup
 #   ./setup.sh --dry-run    # preview what would be done (no changes)
 #   ./setup.sh --reinstall  # force reinstall all tools (skip "already installed" checks)
 #   ./setup.sh --skip-node  # skip fnm + Node.js installation
@@ -46,13 +44,10 @@ run_cmd() {
 }
 
 # ─── Parse Arguments ────────────────────────────────────────────────
-SHELL_CHOICE=""
 SKIP_NODE=false
 REINSTALL=false
 for arg in "$@"; do
     case "$arg" in
-        --fish)       SHELL_CHOICE="fish" ;;
-        --zsh)        SHELL_CHOICE="zsh" ;;
         --dry-run)    DRY_RUN=true ;;
         --skip-node)  SKIP_NODE=true ;;
         --reinstall)  REINSTALL=true ;;
@@ -120,27 +115,8 @@ case "$OS" in
         ;;
 esac
 
-# ─── Shell Choice ────────────────────────────────────────────────────
-if [[ -z "$SHELL_CHOICE" ]]; then
-    echo ""
-    echo -e "${BOLD}Which shell do you want to use?${NC}"
-    echo ""
-    echo -e "  ${GREEN}1)${NC} ${BOLD}Zsh${NC}   ${GREEN}★ Recommended${NC} — POSIX-compatible, fish-like with plugins (macOS default)"
-    echo -e "  ${GREEN}2)${NC} ${BOLD}Fish${NC}  — Modern shell, amazing defaults, not POSIX-compatible"
-    echo ""
-    while true; do
-        read -rp "Choose [1/2] (default: 1): " choice
-        choice="${choice:-1}"
-        case "$choice" in
-            1|zsh)  SHELL_CHOICE="zsh"; break ;;
-            2|fish) SHELL_CHOICE="fish"; break ;;
-            *) echo "Please enter 1 or 2." ;;
-        esac
-    done
-fi
-
 echo ""
-info "Setting up with ${BOLD}${SHELL_CHOICE}${NC} on ${BOLD}${OS}${NC}"
+info "Setting up with ${BOLD}Zsh${NC} on ${BOLD}${OS}${NC}"
 
 # ─── Config Directory ───────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -326,98 +302,41 @@ case "$OS" in
         ;;
 esac
 
-# ─── Step 4: Shell ──────────────────────────────────────────────────
+# ─── Step 4: Shell (Zsh + Plugins) ──────────────────────────────────
 echo ""
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
-if [[ "$SHELL_CHOICE" == "fish" ]]; then
-    echo -e "${BOLD}  🐟 Step 4/9: Fish Shell${NC}"
-else
-    echo -e "${BOLD}  🐚 Step 4/9: Zsh + Fish-like Plugins${NC}"
-fi
+echo -e "${BOLD}  🐚 Step 4/9: Zsh + Plugins${NC}"
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
 
 install_shell_macos() {
-    if [[ "$SHELL_CHOICE" == "fish" ]]; then
-        if $REINSTALL || ! has_cmd fish; then
-            info "Installing Fish..."
-            run_cmd brew install fish
-            success "Fish installed"
+    # Zsh is pre-installed on macOS, just install the plugins
+    local plugins=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions)
+    for plugin in "${plugins[@]}"; do
+        if ! $REINSTALL && brew list "$plugin" &>/dev/null; then
+            success "$plugin already installed"
         else
-            success "Fish already installed"
+            info "Installing $plugin..."
+            run_cmd brew install "$plugin"
+            success "$plugin installed"
         fi
+    done
 
-        FISH_PATH="$(which fish)"
-        if ! grep -qxF "$FISH_PATH" /etc/shells 2>/dev/null; then
-            info "Adding Fish to /etc/shells (may need sudo)..."
-            echo "$FISH_PATH" | sudo tee -a /etc/shells >/dev/null
-        fi
-
-        if [[ "$SHELL" != "$FISH_PATH" ]]; then
-            info "Setting Fish as default shell..."
-            run_cmd chsh -s "$FISH_PATH"
-            success "Default shell changed to Fish"
-        else
-            success "Fish is already the default shell"
-        fi
+    ZSH_PATH="$(which zsh)"
+    if [[ "$SHELL" != "$ZSH_PATH" ]]; then
+        info "Setting Zsh as default shell..."
+        run_cmd chsh -s "$ZSH_PATH"
+        success "Default shell changed to Zsh"
     else
-        # Zsh is pre-installed on macOS, just install the plugins
-        local plugins=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions)
-        for plugin in "${plugins[@]}"; do
-            if ! $REINSTALL && brew list "$plugin" &>/dev/null; then
-                success "$plugin already installed"
-            else
-                info "Installing $plugin..."
-                run_cmd brew install "$plugin"
-                success "$plugin installed"
-            fi
-        done
-
-        ZSH_PATH="$(which zsh)"
-        if [[ "$SHELL" != "$ZSH_PATH" ]]; then
-            info "Setting Zsh as default shell..."
-            run_cmd chsh -s "$ZSH_PATH"
-            success "Default shell changed to Zsh"
-        else
-            success "Zsh is already the default shell"
-        fi
+        success "Zsh is already the default shell"
     fi
 }
 
 install_shell_linux() {
-    if [[ "$SHELL_CHOICE" == "fish" ]]; then
-        if $REINSTALL || ! has_cmd fish; then
-            # Fish PPA for latest version on Ubuntu/Debian
-            if [[ -f /etc/lsb-release ]] && grep -qi ubuntu /etc/lsb-release 2>/dev/null; then
-                info "Adding Fish PPA for latest version..."
-                run_cmd sudo apt-add-repository -y ppa:fish-shell/release-3
-                run_cmd sudo apt-get update
-            fi
-            info "Installing Fish..."
-            run_cmd sudo apt-get install -y fish
-            success "Fish installed"
-        else
-            success "Fish already installed"
-        fi
-
-        FISH_PATH="$(which fish)"
-        if ! grep -qxF "$FISH_PATH" /etc/shells 2>/dev/null; then
-            info "Adding Fish to /etc/shells..."
-            echo "$FISH_PATH" | sudo tee -a /etc/shells >/dev/null
-        fi
-
-        if [[ "$SHELL" != "$FISH_PATH" ]]; then
-            info "Setting Fish as default shell..."
-            run_cmd chsh -s "$FISH_PATH"
-            success "Default shell changed to Fish"
-        else
-            success "Fish is already the default shell"
-        fi
-    else
-        # Install Zsh if not present
-        if ! has_cmd zsh; then
-            info "Installing Zsh..."
-            run_cmd sudo apt-get install -y zsh
-            success "Zsh installed"
+    # Install Zsh if not present
+    if ! has_cmd zsh; then
+        info "Installing Zsh..."
+        run_cmd sudo apt-get install -y zsh
+        success "Zsh installed"
         else
             success "Zsh already installed"
         fi
@@ -462,7 +381,6 @@ install_shell_linux() {
         else
             success "Zsh is already the default shell"
         fi
-    fi
 }
 
 case "$OS" in
@@ -889,119 +807,40 @@ fi
 run_cmd cp "$CONFIGS_DIR/starship.toml" "$HOME/.config/starship.toml"
 success "Starship config deployed"
 
-# --- Shell-specific config ---
-if [[ "$SHELL_CHOICE" == "fish" ]]; then
-    # Fish config
-    FISH_CONFIG_DIR="$HOME/.config/fish"
-    mkdir -p "$FISH_CONFIG_DIR"
-
-    if [[ -f "$FISH_CONFIG_DIR/config.fish" ]]; then
-        run_cmd cp "$FISH_CONFIG_DIR/config.fish" "$FISH_CONFIG_DIR/config.fish.bak.$(date +%s)"
-        warn "Backed up existing config.fish"
-    fi
-
-    # Deploy platform-appropriate fish config
-    if [[ "$OS" == "macos" ]]; then
-        run_cmd cp "$CONFIGS_DIR/config.fish" "$FISH_CONFIG_DIR/config.fish"
-    else
-        # For Linux: use modified config without Homebrew paths
-        run_cmd cp "$CONFIGS_DIR/config.fish" "$FISH_CONFIG_DIR/config.fish"
-        # Patch: replace Homebrew paths with Linux equivalents
-        sed -i 's|/opt/homebrew/bin/starship|starship|g' "$FISH_CONFIG_DIR/config.fish"
-        sed -i 's|fish_add_path /opt/homebrew/bin|# PATH: system paths are used on Linux\nfish_add_path $HOME/.local/bin $HOME/.atuin/bin|g' "$FISH_CONFIG_DIR/config.fish"
-        # Fix pnpm path for Linux
-        sed -i 's|\$HOME/Library/pnpm|\$HOME/.local/share/pnpm|g' "$FISH_CONFIG_DIR/config.fish"
-    fi
-    success "Fish config deployed"
-
-    # Fish abbreviations
-    if ! $DRY_RUN; then
-        info "Setting up Fish abbreviations..."
-        fish -c '
-            abbr -a --global ls "eza --icons --group-directories-first"
-            abbr -a --global ll "eza -la --icons --group-directories-first"
-            abbr -a --global lt "eza --tree --icons --level=2"
-            abbr -a --global cat "bat"
-            abbr -a --global find "fd"
-            abbr -a --global grep "rg"
-            abbr -a --global top "btop"
-            abbr -a --global lg "lazygit"
-            abbr -a --global cd "z"
-            abbr -a --global df "duf"
-            abbr -a --global du "dust"
-            abbr -a --global y "yazi"
-        '
-        success "Fish abbreviations set"
-    else
-        info "[DRY-RUN] Would set Fish abbreviations"
-    fi
-
-    # Zoxide + fzf init for fish
-    if ! grep -qF "zoxide" "$FISH_CONFIG_DIR/config.fish" 2>/dev/null; then
-        info "Adding zoxide + fzf init to fish config..."
-        cat >> "$FISH_CONFIG_DIR/config.fish" << 'FISHEOF'
-
-# zoxide
-zoxide init fish | source
-
-# fzf
-fzf --fish | source
-set -gx FZF_DEFAULT_OPTS '--height 40% --layout=reverse --border'
-if command -q fd
-    set -gx FZF_DEFAULT_COMMAND 'fd --type f --hidden --follow --exclude .git'
-    set -gx FZF_CTRL_T_COMMAND $FZF_DEFAULT_COMMAND
-    set -gx FZF_ALT_C_COMMAND 'fd --type d --hidden --follow --exclude .git'
-end
-FISHEOF
-        success "Zoxide + fzf init added"
-    else
-        success "Zoxide init already present"
-    fi
-
-    # Add ~/.local/bin to fish PATH on Linux
-    if [[ "$OS" == "debian" || "$OS" == "wsl" ]]; then
-        if ! grep -qF '.local/bin' "$FISH_CONFIG_DIR/config.fish" 2>/dev/null; then
-            echo '' >> "$FISH_CONFIG_DIR/config.fish"
-            echo '# Local bin (Linux)' >> "$FISH_CONFIG_DIR/config.fish"
-            echo 'fish_add_path $HOME/.local/bin' >> "$FISH_CONFIG_DIR/config.fish"
-        fi
-    fi
-else
-    # Zsh config
-    if [[ -f "$HOME/.zshrc" ]]; then
-        run_cmd cp "$HOME/.zshrc" "$HOME/.zshrc.bak.$(date +%s)"
-        warn "Backed up existing .zshrc"
-    fi
-
-    if [[ "$OS" == "macos" ]]; then
-        run_cmd cp "$CONFIGS_DIR/.zshrc" "$HOME/.zshrc"
-    else
-        # Deploy and patch for Linux
-        run_cmd cp "$CONFIGS_DIR/.zshrc" "$HOME/.zshrc"
-
-        # Patch Homebrew PATH → Linux PATH
-        sed -i 's|export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:\$PATH"|# PATH — system paths on Linux\nexport PATH="$HOME/.local/bin:$PATH"|' "$HOME/.zshrc"
-
-        # Patch zsh plugin source paths
-        sed -i 's|/opt/homebrew/share/zsh-syntax-highlighting/|/usr/share/zsh-syntax-highlighting/|g' "$HOME/.zshrc"
-        sed -i 's|/opt/homebrew/share/zsh-autosuggestions/|/usr/share/zsh-autosuggestions/|g' "$HOME/.zshrc"
-        sed -i 's|/opt/homebrew/share/zsh-completions|/usr/share/zsh-completions|g' "$HOME/.zshrc"
-
-        # Patch pnpm path for Linux
-        sed -i 's|\$HOME/Library/pnpm|\$HOME/.local/share/pnpm|g' "$HOME/.zshrc"
-
-        # Add fnm path for Linux (installed to ~/.local/share/fnm)
-        if ! grep -qF '.local/share/fnm' "$HOME/.zshrc" 2>/dev/null; then
-            sed -i '/# ─── fnm/i # fnm binary path (Linux)\nexport PATH="$HOME/.local/share/fnm:$PATH"\n' "$HOME/.zshrc"
-        fi
-
-        # Add atuin path for Linux (installed to ~/.atuin/bin)
-        if ! grep -qF '.atuin/bin' "$HOME/.zshrc" 2>/dev/null; then
-            sed -i '/# ─── atuin/i # atuin binary path (Linux)\nexport PATH="$HOME/.atuin/bin:$PATH"\n' "$HOME/.zshrc"
-        fi
-    fi
-    success "Zsh config deployed"
+# --- Shell-specific config (Zsh) ---
+if [[ -f "$HOME/.zshrc" ]]; then
+    run_cmd cp "$HOME/.zshrc" "$HOME/.zshrc.bak.$(date +%s)"
+    warn "Backed up existing .zshrc"
 fi
+
+if [[ "$OS" == "macos" ]]; then
+    run_cmd cp "$CONFIGS_DIR/.zshrc" "$HOME/.zshrc"
+else
+    # Deploy and patch for Linux
+    run_cmd cp "$CONFIGS_DIR/.zshrc" "$HOME/.zshrc"
+
+    # Patch Homebrew PATH → Linux PATH
+    sed -i 's|export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:\$PATH"|# PATH — system paths on Linux\nexport PATH="$HOME/.local/bin:$PATH"|' "$HOME/.zshrc"
+
+    # Patch zsh plugin source paths
+    sed -i 's|/opt/homebrew/share/zsh-syntax-highlighting/|/usr/share/zsh-syntax-highlighting/|g' "$HOME/.zshrc"
+    sed -i 's|/opt/homebrew/share/zsh-autosuggestions/|/usr/share/zsh-autosuggestions/|g' "$HOME/.zshrc"
+    sed -i 's|/opt/homebrew/share/zsh-completions|/usr/share/zsh-completions|g' "$HOME/.zshrc"
+
+    # Patch pnpm path for Linux
+    sed -i 's|\$HOME/Library/pnpm|\$HOME/.local/share/pnpm|g' "$HOME/.zshrc"
+
+    # Add fnm path for Linux (installed to ~/.local/share/fnm)
+    if ! grep -qF '.local/share/fnm' "$HOME/.zshrc" 2>/dev/null; then
+        sed -i '/# ─── fnm/i # fnm binary path (Linux)\nexport PATH="$HOME/.local/share/fnm:$PATH"\n' "$HOME/.zshrc"
+    fi
+
+    # Add atuin path for Linux (installed to ~/.atuin/bin)
+    if ! grep -qF '.atuin/bin' "$HOME/.zshrc" 2>/dev/null; then
+        sed -i '/# ─── atuin/i # atuin binary path (Linux)\nexport PATH="$HOME/.atuin/bin:$PATH"\n' "$HOME/.zshrc"
+    fi
+fi
+success "Zsh config deployed"
 
 # ─── Git config for delta ────────────────────────────────────────────
 if has_cmd delta || $DRY_RUN; then
@@ -1041,13 +880,9 @@ case "$OS" in
         echo -e "    💻 Windows Terminal      — recommended for WSL"
         ;;
 esac
-if [[ "$SHELL_CHOICE" == "fish" ]]; then
-    echo -e "    🐟 Fish                 — shell"
-else
-    echo -e "    🐚 Zsh                  — shell (POSIX-compatible)"
-    echo -e "    ✨ zsh-autosuggestions   — fish-like suggestions"
-    echo -e "    🎨 zsh-syntax-highlight — fish-like highlighting"
-fi
+echo -e "    🐚 Zsh                  — shell"
+echo -e "    ✨ zsh-autosuggestions   — suggestions"
+echo -e "    🎨 zsh-syntax-highlight — syntax highlighting"
 echo -e "    🚀 Starship             — prompt (Catppuccin Mocha)"
 echo -e "    🔤 Maple Mono NF CN     — nerd font"
 echo -e "    🟢 fnm                  — Node version manager (fast!)"

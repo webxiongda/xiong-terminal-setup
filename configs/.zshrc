@@ -1,13 +1,17 @@
 #!/bin/zsh
 # ─── xiong-terminal-setup: Zsh config ────────────────────────────────
 # Stack: Starship + zsh-autosuggestions + zsh-syntax-highlighting
-#        fzf + zoxide + fnm
+#        fzf + zoxide + fnm + atuin
 
 # ─── Remove "Last Login" message ────────────────────────────────────
 printf "\033[1A\033[K\033[G"
 
 # ─── Homebrew ────────────────────────────────────────────────────────
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+# ─── Editor ──────────────────────────────────────────────────────────
+export EDITOR="vim"
+export VISUAL="$EDITOR"
 
 # ─── Starship prompt ─────────────────────────────────────────────────
 eval "$(starship init zsh)"
@@ -44,6 +48,7 @@ setopt EXTENDED_HISTORY
 setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS
 setopt SHARE_HISTORY
 setopt INC_APPEND_HISTORY
 setopt AUTO_CD
@@ -73,10 +78,38 @@ if command -v fnm &>/dev/null; then
     eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
+# ─── atuin (shell history — replaces Ctrl+R with full history TUI) ──
+if command -v atuin &>/dev/null; then
+    eval "$(atuin init zsh)"
+fi
+
 # ─── direnv (per-directory env vars) ─────────────────────────────────
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook zsh)"
 fi
+
+# ─── bat theme ───────────────────────────────────────────────────────
+export BAT_THEME="Catppuccin Mocha"
+
+# ─── Proxy toggle (proxy-on / proxy-off / proxy-status) ──────────────
+export PROXY_URL="http://127.0.0.1:7890"
+function proxy-on() {
+    export HTTPS_PROXY=$PROXY_URL
+    export HTTP_PROXY=$PROXY_URL
+    export ALL_PROXY=$PROXY_URL
+    echo "✓ Proxy ON: $PROXY_URL"
+}
+function proxy-off() {
+    unset HTTPS_PROXY HTTP_PROXY ALL_PROXY
+    echo "✓ Proxy OFF"
+}
+function proxy-status() {
+    if [[ -n $HTTPS_PROXY ]]; then
+        echo "Proxy: ON ($HTTPS_PROXY)"
+    else
+        echo "Proxy: OFF"
+    fi
+}
 
 # ─── SSH key switcher ────────────────────────────────────────────────
 function set-ssh-key() {
@@ -103,6 +136,14 @@ alias grep='rg'
 alias top='btop'
 alias lg='lazygit'
 alias c='clear'
+alias df='duf'
+alias du='dust'
+alias y='yazi'
+
+# ─── Quick edit configs ─────────────────────────────────────────────
+alias zshrc='$EDITOR ~/.zshrc'
+alias szsh='source ~/.zshrc'
+alias st='$EDITOR ~/.config/starship.toml'
 
 # ─── pnpm ────────────────────────────────────────────────────────────
 export PNPM_HOME="$HOME/Library/pnpm"

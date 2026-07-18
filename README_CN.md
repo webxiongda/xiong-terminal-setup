@@ -7,8 +7,6 @@
 <p align="center">
   <img src="assets/ghostty.png" width="80" alt="Ghostty">
   &nbsp;&nbsp;
-  <img src="assets/fish.png" width="80" alt="Fish Shell">
-  &nbsp;&nbsp;
   <img src="assets/zsh.png" width="80" alt="Zsh">
   &nbsp;&nbsp;
   <img src="assets/starship.png" width="80" alt="Starship">
@@ -69,8 +67,6 @@ cd xiong-terminal-setup && ./setup.sh
 ### 选项
 
 ```bash
-./setup.sh --fish       # Fish shell
-./setup.sh --zsh        # Zsh + 类 Fish 插件
 ./setup.sh --skip-node  # 跳过 fnm + Node.js 安装
 ./setup.sh --dry-run    # 预览会做什么（不做任何改动）
 ./setup.sh --reinstall  # 强制重新安装所有工具
@@ -82,23 +78,12 @@ cd xiong-terminal-setup && ./setup.sh
 bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-setup/main/setup.sh)
 ```
 
-## 选择你的 Shell
-
-| | 🐟 Fish | 🐚 Zsh |
-|---|---------|---------|
-| **POSIX 兼容** | ❌ 自有语法 | ✅ 兼容 |
-| **自动补全建议** | ✅ 内置 | ✅ 通过插件 |
-| **语法高亮** | ✅ 内置 | ✅ 通过插件 |
-| **Node 管理** | fnm（共享） | fnm（共享） |
-| **配置文件** | `~/.config/fish/config.fish` | `~/.zshrc` |
-| **适合** | 开箱即用，省心 | 写脚本，POSIX 兼容 |
-
 ## 工具栈
 
 | 组件 | 说明 |
 |------|------|
 | **[Ghostty](https://ghostty.org)** | GPU 加速终端，毛玻璃 + 分屏 + Quick Terminal |
-| **Fish** 或 **Zsh** | Shell（你选） |
+| **Zsh** | Shell，带有自动建议 + 语法高亮 + 补全 |
 | **[Starship](https://starship.rs)** | 跨 Shell 提示符（Catppuccin Mocha 主题） |
 | **Maple Mono NF CN** | Nerd Font，中文支持，图标 + Powerline 字形 |
 | **[bat](https://github.com/sharkdp/bat)** | 带语法高亮和行号的 `cat` |
@@ -189,7 +174,6 @@ set-ssh-key                  # key 不存在时列出所有可用 key
 | Ghostty | `~/.config/ghostty/config` |
 | Starship | `~/.config/starship.toml` |
 | Zsh | `~/.zshrc` |
-| Fish | `~/.config/fish/config.fish` |
 
 ---
 
