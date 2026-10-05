@@ -5,8 +5,6 @@ One-script terminal environment setup for **macOS**, **Debian/Ubuntu**, and **Wi
 **🇨🇳 [中文版文档](README_CN.md)**
 
 <p align="center">
-  <img src="assets/ghostty.png" width="80" alt="Ghostty">
-  &nbsp;&nbsp;
   <img src="assets/zsh.png" width="80" alt="Zsh">
   &nbsp;&nbsp;
   <img src="assets/starship.png" width="80" alt="Starship">
@@ -73,10 +71,10 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 
 | Component | What |
 |-----------|------|
-| **[Ghostty](https://ghostty.org)** | GPU-accelerated terminal emulator |
+| **Terminal emulator** | Bring your own — [Warp](https://www.warp.dev) is what I'd recommend (optional, not installed) |
 | **Zsh** | Shell with autosuggestions + syntax highlighting + completions |
 | **[Starship](https://starship.rs)** | Cross-shell prompt (Catppuccin Mocha theme) |
-| **MesloLGS NF** | Nerd Font for icons & powerline glyphs |
+| **Maple Mono NF CN** | Nerd Font for icons & powerline glyphs, with CJK support (MesloLGS NF on Linux) |
 | **[bat](https://github.com/sharkdp/bat)** | `cat` with syntax highlighting & line numbers |
 | **[eza](https://github.com/eza-community/eza)** | `ls` with icons, git status, tree view |
 | **[fd](https://github.com/sharkdp/fd)** | `find` but fast & intuitive |
@@ -94,8 +92,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 ## What It Does
 
 1. Installs **package manager** (Homebrew on macOS, apt on Linux)
-2. Installs **Ghostty** terminal (macOS; Linux users install separately)
-3. Downloads **MesloLGS NF** nerd fonts (bundled in repo, no download needed)
+2. Prints terminal emulator guidance — deliberately installs **no** terminal emulator (Warp is the optional recommendation)
+3. Installs the **Maple Mono NF CN** nerd font on macOS (bundled MesloLGS NF on Linux)
 4. Installs **Zsh** + plugins (autosuggestions, syntax highlighting, completions)
 5. Installs all **CLI tools** (Homebrew on macOS, apt + bundled binaries on Linux)
 6. Installs **Starship** prompt with Catppuccin Mocha config
@@ -104,29 +102,29 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 9. Deploys all config files (existing configs are backed up with timestamps)
    - Configures **git-delta** as git pager with syntax highlighting
    - Sets up **zsh aliases** for modern tool replacements
-   - Initializes **zoxide**, **fzf**, and **atuin** in shell config
+   - Initializes **zoxide** and **fzf** in shell config
+   - Sources `~/.zshrc.local` last, so machine-specific settings survive a re-run
    - Includes **SSH key switcher** and **proxy toggle** functions
 
 ## Platform Notes
 
 ### macOS
 - Full support, everything installs via Homebrew
-- Ghostty installs as a native macOS app
+- Maple Mono NF CN installs via Homebrew cask
 - All fonts and configs deploy seamlessly
 
 ### Debian / Ubuntu
 - CLI tools install via apt where available, bundled binaries for others (delta, lazygit, eza, tldr)
 - `bat` → `batcat`, `fd` → `fdfind` — symlinks are created automatically
 - Fonts install from bundled files in `fonts/` directory to `~/.local/share/fonts/`
-- Ghostty is not in apt — install manually via [snap, build from source](https://ghostty.org/docs/install), or use another terminal
+- Maple Mono NF CN isn't packaged for apt — install it manually if you want it
 - Zsh plugins install via apt or git clone fallback
 - Shell configs are automatically patched for Linux paths (no Homebrew references)
 - fnm installs to `~/.local/share/fnm` on Linux
 
 ### Windows (WSL)
 - Everything runs inside WSL (Ubuntu/Debian layer)
-- Terminal emulator runs on the Windows side — use [Windows Terminal](https://aka.ms/terminal) or [Ghostty for Windows](https://ghostty.org)
-- Ghostty config deploys to `~/.config/ghostty/` in WSL for reference (actual config on Windows side)
+- Terminal emulator runs on the Windows side — [Windows Terminal](https://aka.ms/terminal) works great
 - Script detects WSL automatically and adapts
 - If run in native Windows (MINGW/Git Bash), the script will prompt you to install WSL
 

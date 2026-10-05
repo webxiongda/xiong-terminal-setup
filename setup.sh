@@ -4,8 +4,10 @@
 #
 # Platforms: macOS, Debian/Ubuntu, Windows (via WSL)
 #
-# Stack: Ghostty + Zsh + Starship + Nerd Font (Maple Mono NF CN)
-# Tools: bat, eza, fd, ripgrep, btop, zoxide, jq, tldr, delta, lazygit, fzf, atuin
+# Stack: Zsh + Starship + Nerd Font (Maple Mono NF CN)
+# Terminal: none installed — any terminal works (Warp is what I'd recommend, but
+#           there is nothing to download; see Step 2)
+# Tools: bat, eza, fd, ripgrep, btop, zoxide, jq, tldr, delta, lazygit, fzf
 # Node:  fnm (Fast Node Manager)
 # Theme: Catppuccin Mocha (Starship)
 #
@@ -210,43 +212,21 @@ case "$OS" in
         ;;
 esac
 
-# ─── Step 2: Terminal Emulator ───────────────────────────────────────
+# ─── Step 2: Terminal Emulator (informational only) ──────────────────
 echo ""
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
-echo -e "${BOLD}  👻 Step 2/9: Terminal Emulator${NC}"
+echo -e "${BOLD}  🖥  Step 2/9: Terminal Emulator${NC}"
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
 
-case "$OS" in
-    macos)
-        if $REINSTALL || [[ ! -d "/Applications/Ghostty.app" ]]; then
-            info "Installing Ghostty..."
-            run_cmd brew install --cask ghostty
-            success "Ghostty installed"
-        else
-            success "Ghostty already installed"
-        fi
-        ;;
-    debian)
-        # Ghostty on Linux: check if already installed, otherwise try snap/flatpak or skip
-        if has_cmd ghostty; then
-            success "Ghostty already installed"
-        else
-            warn "Ghostty is not easily available on Linux via apt."
-            echo -e "  Options to install Ghostty on Linux:"
-            echo -e "    • Snap:    ${BOLD}sudo snap install ghostty${NC}"
-            echo -e "    • Build:   ${BOLD}https://ghostty.org/docs/install/build${NC}"
-            echo -e "    • Or use any other terminal (kitty, alacritty, etc.)"
-            echo ""
-            info "Skipping Ghostty installation — install it manually if desired."
-        fi
-        ;;
-    wsl)
-        info "WSL detected — terminal emulator runs on the Windows side."
-        echo -e "  Install Ghostty for Windows: ${BOLD}https://ghostty.org${NC}"
-        echo -e "  Or use Windows Terminal, which works great with WSL."
-        info "Skipping terminal emulator installation."
-        ;;
-esac
+# This script deliberately installs NO terminal emulator. Every terminal below
+# renders this setup fine, and picking one is a personal call — so there is
+# nothing to download. Warp is the one I use and recommend.
+info "Not installing a terminal emulator — use whichever you already have."
+echo -e "  ${BOLD}Recommended (optional):${NC} ${BOLD}Warp${NC}  https://www.warp.dev"
+echo -e "  Also fine: macOS Terminal, iTerm2, kitty, alacritty, Windows Terminal…"
+if [[ "$OS" == "wsl" ]]; then
+    echo -e "  ${YELLOW}On WSL the terminal emulator runs on the Windows side.${NC}"
+fi
 
 # ─── Step 3: Nerd Font (Maple Mono NF CN) ───────────────────────────
 echo ""
@@ -298,7 +278,7 @@ case "$OS" in
             fi
             success "Nerd Font installed"
         fi
-        warn "On Linux, Ghostty config uses MesloLGS NF. For Maple Mono NF CN, install manually."
+        warn "On Linux the bundled fallback is MesloLGS NF. For Maple Mono NF CN, install manually."
         ;;
 esac
 
@@ -592,21 +572,6 @@ install_cli_tools_linux() {
         success "direnv installed"
     fi
 
-    # atuin — shell history
-    if ! $REINSTALL && has_cmd atuin; then
-        success "atuin already installed"
-    else
-        info "Installing atuin..."
-        if [[ -f "$SCRIPT_DIR/bin/linux-x86_64/atuin" ]]; then
-            run_cmd sudo cp "$SCRIPT_DIR/bin/linux-x86_64/atuin" /usr/local/bin/atuin
-            run_cmd sudo chmod +x /usr/local/bin/atuin
-            success "atuin installed from bundled binary"
-        else
-            run_cmd bash <(curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh)
-            success "atuin installed via official installer"
-        fi
-    fi
-
     # Ensure ~/.local/bin is in PATH
     if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
         export PATH="$HOME/.local/bin:$PATH"
@@ -769,35 +734,6 @@ echo -e "${BOLD}═════════════════════�
 echo -e "${BOLD}  📦 Step 9/9: Deploying Configs${NC}"
 echo -e "${BOLD}══════════════════════════════════════════${NC}"
 
-# --- Ghostty config ---
-deploy_ghostty_config() {
-    local ghostty_config_dir
-    case "$OS" in
-        macos)
-            ghostty_config_dir="$HOME/.config/ghostty"
-            ;;
-        debian)
-            ghostty_config_dir="$HOME/.config/ghostty"
-            ;;
-        wsl)
-            info "Ghostty config: configure on the Windows side if using Ghostty for Windows."
-            info "Deploying Linux-side config to ~/.config/ghostty/ for reference."
-            ghostty_config_dir="$HOME/.config/ghostty"
-            ;;
-    esac
-
-    mkdir -p "$ghostty_config_dir"
-    if [[ -f "$ghostty_config_dir/config" ]]; then
-        run_cmd cp "$ghostty_config_dir/config" "$ghostty_config_dir/config.bak.$(date +%s)"
-        warn "Backed up existing Ghostty config"
-    fi
-
-    run_cmd cp "$CONFIGS_DIR/ghostty.config" "$ghostty_config_dir/config"
-    success "Ghostty config deployed"
-}
-
-deploy_ghostty_config
-
 # --- Starship config ---
 mkdir -p "$HOME/.config"
 if [[ -f "$HOME/.config/starship.toml" ]]; then
@@ -834,11 +770,6 @@ else
     if ! grep -qF '.local/share/fnm' "$HOME/.zshrc" 2>/dev/null; then
         sed -i '/# ─── fnm/i # fnm binary path (Linux)\nexport PATH="$HOME/.local/share/fnm:$PATH"\n' "$HOME/.zshrc"
     fi
-
-    # Add atuin path for Linux (installed to ~/.atuin/bin)
-    if ! grep -qF '.atuin/bin' "$HOME/.zshrc" 2>/dev/null; then
-        sed -i '/# ─── atuin/i # atuin binary path (Linux)\nexport PATH="$HOME/.atuin/bin:$PATH"\n' "$HOME/.zshrc"
-    fi
 fi
 success "Zsh config deployed"
 
@@ -869,17 +800,7 @@ echo ""
 echo -e "  ${BOLD}Platform:${NC} $OS"
 echo -e ""
 echo -e "  ${BOLD}Your terminal stack:${NC}"
-case "$OS" in
-    macos)
-        echo -e "    👻 Ghostty              — terminal emulator"
-        ;;
-    debian)
-        echo -e "    👻 Ghostty              — terminal (install separately on Linux)"
-        ;;
-    wsl)
-        echo -e "    💻 Windows Terminal      — recommended for WSL"
-        ;;
-esac
+echo -e "    🖥  Terminal            — yours to choose; Warp recommended (optional)"
 echo -e "    🐚 Zsh                  — shell"
 echo -e "    ✨ zsh-autosuggestions   — suggestions"
 echo -e "    🎨 zsh-syntax-highlight — syntax highlighting"
@@ -890,7 +811,7 @@ echo -e "    📦 bat eza fd rg        — modern coreutils"
 echo -e "    📊 btop                 — system monitor"
 echo -e "    🔀 lazygit + delta      — git tools"
 echo -e "    📁 zoxide               — smart cd"
-echo -e "    🔍 fzf + atuin          — fuzzy finder + history search"
+echo -e "    🔍 fzf                  — fuzzy finder + history search"
 echo -e "    💾 duf + dust           — disk usage (df / du)"
 echo -e "    🌐 gh                   — GitHub CLI"
 echo -e "    📝 glow                 — markdown renderer"
@@ -903,7 +824,7 @@ if has_cmd yazi; then
 fi
 echo ""
 echo -e "  ${YELLOW}Next steps:${NC}"
-echo -e "    1. Restart your terminal (or open ${BOLD}Ghostty${NC})"
+echo -e "    1. Restart your terminal (open a new window/tab of whatever you use)"
 echo -e "    2. Node is ready: ${BOLD}node --version${NC}"
 echo -e "    3. Pin a project: ${BOLD}echo 22 > .node-version${NC} (fnm auto-switches)"
 echo -e "    4. Try: ${BOLD}Ctrl+R${NC} (fzf history) / ${BOLD}Ctrl+T${NC} (fzf files)"

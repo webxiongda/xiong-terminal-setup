@@ -5,8 +5,6 @@
 **🇬🇧 [English Version](README.md)**
 
 <p align="center">
-  <img src="assets/ghostty.png" width="80" alt="Ghostty">
-  &nbsp;&nbsp;
   <img src="assets/zsh.png" width="80" alt="Zsh">
   &nbsp;&nbsp;
   <img src="assets/starship.png" width="80" alt="Starship">
@@ -18,12 +16,12 @@
 
 ## ✨ 特性亮点
 
-- 🪟 **毛玻璃透明** — Ghostty 0.85 透明度 + 高斯模糊
-- 🎨 **Catppuccin 主题** — 自动跟随系统明暗模式 (Latte / Mocha)
-- ⌨️ **完整快捷键** — 分屏、标签页、光标跳转一应俱全
+- 🎨 **Catppuccin 主题** — Starship 提示符自动跟随系统明暗模式 (Latte / Mocha)
 - 🚀 **Starship 提示符** — Git、语言环境、耗时、conda 一目了然
 - 🔤 **Maple Mono NF CN** — 支持中文的 Nerd Font，图标不乱码
-- 📦 **一键安装** — 零配置，5 分钟搞定
+- 🧰 **现代 CLI 全家桶** — eza / bat / fd / rg / fzf / zoxide / lazygit / delta…
+- 🖥 **不绑定终端** — 用你现有的终端就行，推荐 Warp（可选，脚本不安装）
+- 📦 **一键安装** — 零配置，5 分钟搞定；本机自定义放在 `~/.zshrc.local`，重跑不丢
 
 ## 支持平台
 
@@ -82,7 +80,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 
 | 组件 | 说明 |
 |------|------|
-| **[Ghostty](https://ghostty.org)** | GPU 加速终端，毛玻璃 + 分屏 + Quick Terminal |
+| **终端模拟器** | 自选 —— 推荐 [Warp](https://www.warp.dev)（可选，本脚本不安装） |
 | **Zsh** | Shell，带有自动建议 + 语法高亮 + 补全 |
 | **[Starship](https://starship.rs)** | 跨 Shell 提示符（Catppuccin Mocha 主题） |
 | **Maple Mono NF CN** | Nerd Font，中文支持，图标 + Powerline 字形 |
@@ -100,8 +98,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 | **[fnm](https://github.com/Schniz/fnm)** | 快速 Node 版本管理器（Rust 编写） |
 | **[Zellij](https://zellij.dev)** | 现代终端复用器（可选） |
 
-## Ghostty 快捷键速查
+## Warp 快捷键速查（推荐终端，可选）
 
+> 本脚本不安装终端模拟器 —— 用你现有的终端就行。以下为推荐的 **Warp** 的常用快捷键。
 > `super` = ⌘ Cmd | `alt` = ⌥ Option | `ctrl` = ⌃ Control | `shift` = ⇧ Shift
 
 | 分类 | 快捷键 | 功能 |
@@ -109,21 +108,23 @@ bash <(curl -fsSL https://raw.githubusercontent.com/webxiongda/xiong-terminal-se
 | 分屏 | `Cmd+D` | 向右新建分屏 |
 | | `Cmd+Shift+D` | 向下新建分屏 |
 | | `Cmd+Opt+↑↓←→` | 在分屏间跳转 |
-| | `Cmd+Shift+Enter` | 放大/还原当前分屏 |
+| | `Cmd+Shift+Enter` | 最大化/还原当前分屏 |
 | 标签 | `Cmd+T` | 新建标签 |
 | | `Cmd+1~8` | 切换标签 |
-| | `Cmd+Shift+[/]` | 上/下一个标签 |
-| 窗口 | `Cmd+W` | 关闭分屏 |
-| | `Cmd+Opt+W` | 关闭标签 |
-| | `Cmd+N` | 新建窗口 |
+| | `Shift+Cmd+{` / `Shift+Cmd+}` | 上/下一个标签 |
+| 面板 | `Cmd+P` | 命令面板 |
+| | `Shift+Cmd+P` | 导航面板 |
+| Block | `Cmd+↑/↓` | 上/下一个命令块 |
+| | `Cmd+I` | 重新输入选中的命令 |
 | 字体 | `Cmd+=` / `Cmd+-` | 放大/缩小 |
 | | `Cmd+0` | 重置大小 |
-| 导航 | `Cmd+↑/↓` | 跳转上/下一个命令提示符 |
-| | `Opt+←/→` | 光标跳单词 |
-| | `Cmd+←/→` | 光标跳行首/尾 |
-| 其他 | `Cmd+K` | 清屏 |
-| | `Cmd+Shift+,` | 重载配置 |
-| | `Cmd+Enter` | 全屏 |
+| 搜索 | `Cmd+F` / `Cmd+G` | 查找 / 下一个匹配 |
+| | `Ctrl+R` | Warp 自带命令搜索（会占用 fzf 的 `Ctrl+R`） |
+| 其他 | `Cmd+K` | 清空 Blocks |
+| | `Ctrl+L` | 清屏 |
+
+> ⚠️ Warp 内置的 `Ctrl+R` 优先于 `~/.zshrc` 里 fzf 的绑定。想用 fzf 的历史搜索，
+> 用 `Cmd+P` 搜 "command search" 改掉或关掉 Warp 的绑定。
 
 ## 别名 / 缩写
 
@@ -171,9 +172,9 @@ set-ssh-key                  # key 不存在时列出所有可用 key
 
 | 文件 | 路径 |
 |------|------|
-| Ghostty | `~/.config/ghostty/config` |
 | Starship | `~/.config/starship.toml` |
 | Zsh | `~/.zshrc` |
+| Zsh（本机自定义） | `~/.zshrc.local` — 重跑 `setup.sh` 不会覆盖 |
 
 ---
 

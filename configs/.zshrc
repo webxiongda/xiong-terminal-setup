@@ -1,7 +1,7 @@
 #!/bin/zsh
 # ─── xiong-terminal-setup: Zsh config ────────────────────────────────
 # Stack: Starship + zsh-autosuggestions + zsh-syntax-highlighting
-#        fzf + zoxide + fnm + atuin
+#        fzf + zoxide + fnm
 
 # ─── Remove "Last Login" message ────────────────────────────────────
 printf "\033[1A\033[K\033[G"
@@ -78,11 +78,6 @@ if command -v fnm &>/dev/null; then
     eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
-# ─── atuin (shell history — replaces Ctrl+R with full history TUI) ──
-if command -v atuin &>/dev/null; then
-    eval "$(atuin init zsh)"
-fi
-
 # ─── direnv (per-directory env vars) ─────────────────────────────────
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook zsh)"
@@ -92,24 +87,44 @@ fi
 export BAT_THEME="Catppuccin Mocha"
 
 # ─── Proxy toggle (proxy-on / proxy-off / proxy-status) ──────────────
-export PROXY_URL="http://127.0.0.1:7890"
+# 端口用 PROXY_PORT 覆盖（默认 7890），建议在自己的 ~/.zshrc.local 里设成本机实际端口
+export PROXY_HOST="${PROXY_HOST:-127.0.0.1}"
+export PROXY_PORT="${PROXY_PORT:-7890}"
+# localhost 和国内直连域名必须绕过代理，否则 Claude Code / DeepSeek 反而连不上
+export PROXY_BYPASS="${PROXY_BYPASS:-localhost,127.0.0.1,::1,api.deepseek.com,.deepseek.com}"
+
 function proxy-on() {
-    export HTTPS_PROXY=$PROXY_URL
-    export HTTP_PROXY=$PROXY_URL
-    export ALL_PROXY=$PROXY_URL
-    echo "✓ Proxy ON: $PROXY_URL"
+    local url="http://$PROXY_HOST:$PROXY_PORT"
+    export http_proxy="$url"
+    export https_proxy="$url"
+    export all_proxy="socks5://$PROXY_HOST:$PROXY_PORT"
+    export HTTP_PROXY="$url"
+    export HTTPS_PROXY="$url"
+    export ALL_PROXY="$all_proxy"
+    export no_proxy="$PROXY_BYPASS"
+    export NO_PROXY="$PROXY_BYPASS"
+    echo "✓ Proxy ON: $url"
 }
 function proxy-off() {
-    unset HTTPS_PROXY HTTP_PROXY ALL_PROXY
+    unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY no_proxy NO_PROXY
     echo "✓ Proxy OFF"
 }
 function proxy-status() {
-    if [[ -n $HTTPS_PROXY ]]; then
-        echo "Proxy: ON ($HTTPS_PROXY)"
+    if [[ -n $http_proxy ]]; then
+        echo "Proxy: ON ($http_proxy)"
+        if nc -z "$PROXY_HOST" "$PROXY_PORT" 2>/dev/null; then
+            echo "  端口 $PROXY_PORT: 在监听"
+        else
+            echo "  端口 $PROXY_PORT: 未监听 !! 代理软件没开，网络会断"
+        fi
     else
         echo "Proxy: OFF"
     fi
 }
+# 下划线命名（旧配置沿用），同一份实现，避免两套逻辑打架
+alias proxy_on='proxy-on'
+alias proxy_off='proxy-off'
+alias proxy_status='proxy-status'
 
 # ─── SSH key switcher ────────────────────────────────────────────────
 function set-ssh-key() {
@@ -151,3 +166,10 @@ case ":$PATH:" in
     *":$PNPM_HOME:"*) ;;
     *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
+
+# ─── 本机自定义配置 ──────────────────────────────────────────────────
+# 放在这里 source，重跑 setup.sh 覆盖 ~/.zshrc 时本机改动不会丢。
+# 把机器相关的设置（代理端口、私有 alias、环境变量）写进 ~/.zshrc.local。
+if [[ -f ~/.zshrc.local ]]; then
+    source ~/.zshrc.local
+fi
